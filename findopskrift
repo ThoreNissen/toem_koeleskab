@@ -1,0 +1,37 @@
+<?php
+if($_POST['Submit']){
+	if(is_array($_POST['checkbox'])){
+    	findOpskrifter(addslashes($_POST['checkbox']), addslashes$_POST['maning']));
+  }
+} else { 
+		echo "Der skete en fejl, prøv venligst igen"; 
+	}
+	
+	
+// Funktion der vælger opskrifter i databasen udfra de ingredienser brugeren har valgt. 
+// Hvis de har udfyldt $manIng (hvor mange ingredienser der maks. må mangle) tages der højde for det, ellers må der maks. mangle 3 
+
+function findOpskrifter($ingarr, $manIng = 3) {
+	$queimp = '"'.implode('","',$ingarr).'"';
+	$sql = 'SELECT DISTINCT o.opskrift_id, o.opskrift_navn, o.beskrivelse, o.billede, o.bruger_id, o.rating, o.total_rating, o.total_ratings, GROUP_CONCAT( ingrediens_navn SEPARATOR ", \n" ) har, mi mangler, mico FROM opskrift o JOIN op_ingredienser i ON o.opskrift_id = i.opskrift_id LEFT JOIN (SELECT DISTINCT COUNT( * ) mico, opskrift_id, GROUP_CONCAT( ingrediens_navn SEPARATOR ", \n" ) mi FROM op_ingredienser WHERE ingrediens_navn NOT IN ('.$queimp.') GROUP BY opskrift_id) m ON (m.opskrift_id = o.opskrift_id) WHERE i.ingrediens_navn IN ('.$queimp.') AND mico <= '.$manIng. ' GROUP BY i.opskrift_id ORDER BY mico';
+	$result = mysqli_query($sql);
+	
+	if (mysqli_num_rows($result)==0) {
+		echo "Der var desværre ingen opskrift, der matchede din søgning.";
+	}else{
+	
+		// Viser opskriftens overskrift, samt hvor mange ingredienser de mangler, for at kunne lave den.
+		while ($row = mysqli_fetch_array($result)) {
+	
+			echo $row['opskrift_navn']."<br />";
+	
+			if ($row['mico'] >= 1) { 
+				echo "Du mangler ".$row['mico']." ingredienser";
+			} else {
+				echo "Du har alle ingredienserne";
+			}
+
+		}
+	}
+}
+?>
