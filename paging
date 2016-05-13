@@ -1,0 +1,37 @@
+<?php 
+$num_pages = mysqli_num_rows(mysqli_query($sql));
+
+$pr_page = 12; // antal udtræk pr side 
+$current_page = 1; // valgte side - opdateres senere hvis brugeren ikke er på side 1
+$s = mysqli_real_escape_string($_GET['soeg']); // søgning
+
+// laver link til forrige side hvis brugeren er på en anden side end første side
+if ($_GET['p']>1) {
+	$current_page = $_GET['p'];  
+	$forrige_side = $current_page - 1;		
+	echo "<a href='?soeg=".$s."&p=".$forrige_side."'>&larr;</a>";
+}
+
+// Link til første side
+$forste_side = "<a href='?soeg=".$s.";&p=1'";
+if ($current_page==1){ // tilføjer class hvis brugeren er på side 1
+	$forste_side .= " class='active_page'";
+}
+$forste_side .= ">1</a>";
+
+// Udskriver de resterende sidetal
+$num_pages2 = ceil($num_pages / $pr_page);
+for ($x = 2; $x <= $num_pages2; $x++) {
+	echo "<a href='?soeg=".$s."&p=".$x."'";
+	
+	if ($current_page==$x){ // tilføjer class hvis brugeren er på siden
+		echo " class='active_page'";
+	} 
+	echo '>'.$x.'</a>'; // sidetal
+}
+
+// Udskriver link til næste side - hvis brugeren ikke er på sidste side
+if ($num_pages2 > $current_page) {
+	$plus = $current_page + 1;
+	echo "<a href='?soeg=".$s."&p=".$plus."'>&rarr;</a>";
+} ?>
